@@ -8,6 +8,8 @@ import Header from "./components/Header";
 import SignupPage from "./pages/SignupPage";
 import ReviewDetailPage from "./pages/ReviewDetailPage";
 import { Box, CircularProgress } from "@mui/material";
+import ProtectedRoute from './components/ProtectedRoute';
+import ReviewWritePage from './pages/ReviewWritePage';
 
 function App() {
   const { login, setLoading, isLoading } = useAuthStore();
@@ -40,6 +42,12 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/reviews/:reviewId" element={<ReviewDetailPage />} />
+
+          <Route element={<ProtectedRoute />}>
+            <Route path="/write-review" element={<ReviewWritePage />} />
+            {/* 나중에 만들 마이페이지 등도 이 안에 추가하면 됩니다. */}
+            {/* <Route path="/mypage" element={<MyPage />} /> */}
+            </Route>
         </Routes>
       </main>
     </div>
