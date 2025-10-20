@@ -7,24 +7,35 @@ import HomePage from "./pages/HomePage";
 import Header from "./components/Header";
 import SignupPage from "./pages/SignupPage";
 import ReviewDetailPage from "./pages/ReviewDetailPage";
+import ProtectedRoute from './components/ProtectedRoute'; // 보호된 경로 컴포넌트
+import ReviewWritePage from './pages/ReviewWritePage'; // 리뷰 작성 페이지
+import ReviewEditPage from './pages/ReviewEditPage'; // 리뷰 수정 페이지 (추가)
 import { Box, CircularProgress } from "@mui/material";
-import ProtectedRoute from './components/ProtectedRoute';
-import ReviewWritePage from './pages/ReviewWritePage';
 
 function App() {
-  const { login, setLoading, isLoading } = useAuthStore();
+  const { login, setUser, setLoading, isLoading } = useAuthStore();
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (token) {
-      // 똑똑해진 login 함수를 호출하기만 하면 됩니다.
-      login(token).finally(() => setLoading(false));
+      const fetchUser = async () => {
+        try {
+          const response = await axiosInstance.get('/api/users/me');
+          setUser(response.data);
+          login(token);
+        } catch (error) {
+          console.error("자동 로그인 실패. 토큰이 유효하지 않을 수 있습니다.", error);
+          localStorage.removeItem("accessToken");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchUser();
     } else {
       setLoading(false);
     }
   }, []);
 
-  // 전역 로딩 상태일 때, 화면 전체에 로딩 스피너를 보여줌
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -38,16 +49,19 @@ function App() {
       <Header />
       <main>
         <Routes>
+          {/* 공개 경로 */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/reviews/:reviewId" element={<ReviewDetailPage />} />
 
+          {/* 보호된 경로 (로그인 필요) */}
           <Route element={<ProtectedRoute />}>
             <Route path="/write-review" element={<ReviewWritePage />} />
-            {/* 나중에 만들 마이페이지 등도 이 안에 추가하면 됩니다. */}
+            {/* 리뷰 수정 경로 추가 */}
+            <Route path="/reviews/:reviewId/edit" element={<ReviewEditPage />} />
             {/* <Route path="/mypage" element={<MyPage />} /> */}
-            </Route>
+          </Route>
         </Routes>
       </main>
     </div>
