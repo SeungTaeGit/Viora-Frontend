@@ -15,14 +15,12 @@ function LoginPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     try {
-      // axios 대신 axiosInstance 사용 (baseURL이 이미 설정되어 있음)
       const response = await axiosInstance.post('/auth/login', { email, password });
       const accessToken = response.data.accessToken;
 
-      // 5. 관제실에 로그인 처리 요청
-      login(accessToken);
+      // ❗️ 이제 이 login 함수가 토큰 저장, 사용자 정보 로딩까지 모두 처리합니다.
+      await login(accessToken);
 
       alert('로그인에 성공했습니다!');
       navigate('/');
