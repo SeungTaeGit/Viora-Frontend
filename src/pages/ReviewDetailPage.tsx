@@ -13,16 +13,19 @@ import {
 import { useAuthStore } from "../stores/authStore";
 import CommentForm from "../components/CommentForm";
 import CommentItem from "../components/CommentItem";
-import { Map, MapMarker } from "react-kakao-maps-sdk"; // 카카오 지도 컴포넌트
+import LikeButton from "../components/LikeButton";
+import { Map, MapMarker } from "react-kakao-maps-sdk";
 
 // 백엔드로부터 받아올 리뷰 데이터의 타입 정의
 interface Review {
   authorNickname: string;
   category: string;
   contentName: string;
-  location: string; // location 필드 추가
+  location: string;
   text: string;
   rating: number;
+  likeCount: number; // likeCount 필드 추가
+  isLiked: boolean;  // isLiked 필드 추가
 }
 
 // 백엔드로부터 받아올 댓글 데이터의 타입 정의
@@ -38,7 +41,7 @@ function ReviewDetailPage() {
   const { user, isLoading: isAuthLoading, isLoggedIn } = useAuthStore();
   const [review, setReview] = useState<Review | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(null); // 지도 마커 위치 상태
+  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(null);
 
   // 댓글 목록을 다시 불러오는 함수
   const fetchComments = async () => {
@@ -61,7 +64,7 @@ function ReviewDetailPage() {
         const response = await axiosInstance.get(`/api/reviews/${reviewId}`);
         setReview(response.data);
 
-        // 리뷰 로딩 성공 후, 주소를 좌표로 변환하여 마커 위치 설정
+        // 리뷰 로딩 성공 후, 주소를 좌표로 변환
         if (response.data.location && window.kakao && window.kakao.maps && window.kakao.maps.services) {
           const geocoder = new window.kakao.maps.services.Geocoder();
           geocoder.addressSearch(response.data.location, (result, status) => {
@@ -69,15 +72,15 @@ function ReviewDetailPage() {
               setMarkerPosition({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
             } else {
               console.warn("주소를 좌표로 변환하는데 실패했습니다:", response.data.location);
-              setMarkerPosition(null); // 실패 시 마커 위치 null로 설정
+              setMarkerPosition(null);
             }
           });
         } else {
-             setMarkerPosition(null); // 주소가 없으면 마커 위치 null로 설정
+             setMarkerPosition(null);
         }
       } catch (error) {
         console.error("리뷰 상세 정보를 불러오는 데 실패했습니다.", error);
-        setReview(null); // 에러 발생 시 review를 null로 설정
+        setReview(null);
       }
     };
 
@@ -91,7 +94,7 @@ function ReviewDetailPage() {
       try {
         await axiosInstance.delete(`/api/reviews/${reviewId}`);
         alert("리뷰가 삭제되었습니다.");
-        navigate("/"); // 삭제 성공 시 메인 페이지로 이동
+        navigate("/");
       } catch (error) {
         alert("리뷰 삭제에 실패했습니다.");
         console.error("리뷰 삭제 오류:", error);
@@ -99,22 +102,14 @@ function ReviewDetailPage() {
     }
   };
 
-  // 1. 앱의 사용자 정보 로딩이 아직 안 끝났거나,
-  // 2. 이 페이지의 리뷰 정보 로딩이 아직 안 끝났다면 로딩 화면을 보여줍니다.
-  // ❗️❗️ 이 if 문 안에 로딩 코드가 있어야 합니다. ❗️❗️
-  if (isAuthLoading || review === undefined) { // review가 undefined인 초기 상태도 로딩으로 간주
+  // 로딩 처리
+  if (isAuthLoading || !review) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <CircularProgress />
       </Box>
     );
   }
-
-  // 리뷰 데이터 로딩 실패 시 (null) 에러 메시지 표시
-  if (review === null) {
-      return <Typography sx={{ p: 2 }}>리뷰 정보를 불러오는데 실패했거나 해당 리뷰가 없습니다.</Typography>;
-  }
-
 
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 4, mb: 4 }}>
@@ -155,7 +150,15 @@ function ReviewDetailPage() {
       </Typography>
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2, mb: 2 }}>
         <Typography color="text.secondary">by {review.authorNickname}</Typography>
-        <Typography variant="h6">⭐ {review.rating} / 5</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography variant="h6" sx={{ mr: 2 }}>⭐ {review.rating} / 5</Typography>
+          {/* 좋아요 버튼 컴포넌트 사용 */}
+          <LikeButton
+            reviewId={reviewId!}
+            initialLikeCount={review.likeCount}
+            initialIsLiked={review.isLiked}
+          />
+        </Box>
       </Box>
 
       <Divider sx={{ my: 4 }} />
