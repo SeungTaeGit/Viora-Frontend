@@ -19,13 +19,12 @@ import { forwardRef } from "react";
 import PropTypes from "prop-types";
 
 // Custom styles for SoftInput
-import SoftInputRoot from "components/SoftInput/SoftInputRoot";
-import SoftInputWithIconRoot from "components/SoftInput/SoftInputWithIconRoot";
-import SoftInputIconBoxRoot from "components/SoftInput/SoftInputIconBoxRoot";
-import SoftInputIconRoot from "components/SoftInput/SoftInputIconRoot";
+import SoftInputRoot from "@/components/atoms/SoftInput/SoftInputRoot";
+import SoftInputWithIconRoot from "@/components/atoms/SoftInput/SoftInputWithIconRoot";
+import SoftInputIconBoxRoot from "@/components/atoms/SoftInput/SoftInputIconBoxRoot";
+import SoftInputIconRoot from "@/components/atoms/SoftInput/SoftInputIconRoot";
 
-// Soft UI Dashboard PRO React contexts
-import { useSoftUIController } from "context";
+import { useSoftUIController } from "@/components/atoms/SoftInput/context";
 
 const SoftInput = forwardRef(({ size = "medium", icon = { component: false, direction: "none" }, error = false, success = false, disabled = false, ...rest }, ref) => {
   let template;

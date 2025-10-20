@@ -19,7 +19,7 @@ import { forwardRef } from "react";
 import PropTypes from "prop-types";
 
 // Custom styles for SoftButton
-import SoftButtonRoot from "components/SoftButton/SoftButtonRoot";
+import SoftButtonRoot from "@/components/atoms/SoftButton/SoftButtonRoot";
 
 const SoftButton = forwardRef(
   ({ color = "primary", variant = "contained", size = "medium", circular = false, iconOnly = false, children, ...rest }, ref) => (

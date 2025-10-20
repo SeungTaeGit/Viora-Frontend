@@ -19,8 +19,8 @@ import { forwardRef } from "react";
 import PropTypes from "prop-types";
 
 // Soft UI Dashboard PRO React components
-import SoftBox from "components/SoftBox";
-import SoftTypography from "components/SoftTypography";
+import SoftBox from "@/components/atoms/SoftBox";
+import SoftTypography from "@/components/atoms/SoftTypography";
 
 const SoftBadgeDot = forwardRef(({ variant = "contained", color = "info", size = "xs", badgeContent, font = {}, ...rest }, ref) => {
   let finalSize;

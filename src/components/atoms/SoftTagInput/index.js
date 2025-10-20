@@ -23,7 +23,7 @@ import ReactTagInput from "@pathofdev/react-tag-input";
 import "@pathofdev/react-tag-input/build/index.css";
 
 // Custom styles for SoftTagInput
-import SoftTagInputRoot from "components/SoftTagInput/SoftTagInputRoot";
+import SoftTagInputRoot from "@/components/atoms/SoftTagInput/SoftTagInputRoot";
 
 const SoftTagInput = forwardRef(({ size = "medium", error = false, success = false, ...rest }, ref) => (
   <SoftTagInputRoot ownerState={{ size, error, success }}>

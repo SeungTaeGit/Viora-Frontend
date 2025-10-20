@@ -17,7 +17,7 @@ Coded by www.creative-tim.com
 import { styled } from "@mui/material/styles";
 
 // Soft UI Dashboard PRO React components
-import SoftButton from "components/SoftButton";
+import SoftButton from "@/components/atoms/SoftButton";
 
 export default styled(SoftButton)(({ theme, ownerState }) => {
   const { borders, functions, typography, palette } = theme;

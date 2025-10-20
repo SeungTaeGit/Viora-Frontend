@@ -19,10 +19,10 @@ import { forwardRef, createContext, useContext, useMemo } from "react";
 import PropTypes from "prop-types";
 
 // Soft UI Dashboard PRO React components
-import SoftBox from "components/SoftBox";
+import SoftBox from "@/components/atoms/SoftBox";
 
 // Custom styles for SoftPagination
-import SoftPaginationItemRoot from "components/SoftPagination/SoftPaginationItemRoot";
+import SoftPaginationItemRoot from "@/components/atoms/SoftPagination/SoftPaginationItemRoot";
 
 // The Pagination main context
 const Context = createContext();

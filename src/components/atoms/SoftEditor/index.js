@@ -24,7 +24,7 @@ import { convertToHTML } from "draft-convert";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 
 // Custom styles for the MDEditor
-import SoftEditorRoot from "components/SoftEditor/SoftEditorRoot";
+import SoftEditorRoot from "@/components/atoms/SoftEditor/SoftEditorRoot";
 
 // Material Dashboard 2 PRO React context
 import { useSoftUIController } from "context";

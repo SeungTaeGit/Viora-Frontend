@@ -23,7 +23,7 @@ import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/flatpickr.css";
 
 // Soft UI Dashboard PRO React components
-import SoftInput from "components/SoftInput";
+import SoftInput from "@/components/atoms/SoftInput";
 
 function SoftDatePicker({ input = {}, ...rest }) {
   return (

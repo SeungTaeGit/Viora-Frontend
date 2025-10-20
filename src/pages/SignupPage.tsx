@@ -3,13 +3,13 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import axiosInstance from "../api/axiosInstance";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/router";
 
 function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState(""); // 1. 닉네임을 기억할 공간 추가
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -23,7 +23,7 @@ function SignupPage() {
       });
 
       alert("회원가입에 성공했습니다! 로그인 페이지로 이동합니다.");
-      navigate("/login"); // 4. 성공 시 로그인 페이지로 이동
+      router.push("/login"); // 4. 성공 시 로그인 페이지로 이동
 
     } catch (error) {
       alert("회원가입에 실패했습니다. 이미 사용 중인 이메일일 수 있습니다.");

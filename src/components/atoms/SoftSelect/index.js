@@ -25,7 +25,7 @@ import Select from "react-select";
 import colors from "assets/theme/base/colors";
 
 // Custom styles for SoftSelect
-import styles from "components/SoftSelect/styles";
+import styles from "@/components/atoms/SoftSelect/styles";
 
 const SoftSelect = forwardRef(({ size = "medium", error = false, success = false, ...rest }, ref) => {
   const { light } = colors;

@@ -19,10 +19,10 @@ import { forwardRef } from "react";
 import PropTypes from "prop-types";
 
 // Soft UI Dashboard PRO React components
-import SoftTypography from "components/SoftTypography";
+import SoftTypography from "@/components/atoms/SoftTypography";
 
 // Custom styles for SoftProgress
-import SoftProgressRoot from "components/SoftProgress/SoftProgressRoot";
+import SoftProgressRoot from "@/components/atoms/SoftProgress/SoftProgressRoot";
 
 const SoftProgress = forwardRef(({ variant = "contained", color = "info", value = 0, label = false, ...rest }, ref) => (
   <>

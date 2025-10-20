@@ -25,10 +25,10 @@ import Dropzone from "dropzone";
 import "dropzone/dist/dropzone.css";
 
 // Soft UI Dashboard PRO React components
-import SoftBox from "components/SoftBox";
+import SoftBox from "@/components/atoms/SoftBox";
 
 // Custom styles for the SoftDropzone
-import SoftDropzoneRoot from "components/SoftDropzone/SoftDropzoneRoot";
+import SoftDropzoneRoot from "@/components/atoms/SoftDropzone/SoftDropzoneRoot";
 
 function SoftDropzone({ options }) {
   const dropzoneRef = useRef();

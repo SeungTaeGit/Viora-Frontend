@@ -22,11 +22,11 @@ import PropTypes from "prop-types";
 import Fade from "@mui/material/Fade";
 
 // Soft UI Dashboard PRO React components
-import SoftBox from "components/SoftBox";
+import SoftBox from "@/components/atoms/SoftBox";
 
 // Custom styles for the SoftAlert
-import SoftAlertRoot from "components/SoftAlert/SoftAlertRoot";
-import SoftAlertCloseIcon from "components/SoftAlert/SoftAlertCloseIcon";
+import SoftAlertRoot from "@/components/atoms/SoftAlert/SoftAlertRoot";
+import SoftAlertCloseIcon from "@/components/atoms/SoftAlert/SoftAlertCloseIcon";
 
 function SoftAlert({ color = "info", dismissible = false, children, ...rest }) {
   const [alertStatus, setAlertStatus] = useState("mount");

@@ -24,14 +24,14 @@ import Divider from "@mui/material/Divider";
 import Fade from "@mui/material/Fade";
 
 // Soft UI Dashboard PRO React components
-import SoftBox from "components/SoftBox";
-import SoftTypography from "components/SoftTypography";
+import SoftBox from "@/components/atoms/SoftBox";
+import SoftTypography from "@/components/atoms/SoftTypography";
 
 // Soft UI Dashboard PRO React base styles
 import typography from "assets/theme/base/typography";
 
 // Custom styles for the SoftSnackbar
-import SoftSnackbarIconRoot from "components/SoftSnackbar/SoftSnackbarIconRoot";
+import SoftSnackbarIconRoot from "@/components/atoms/SoftSnackbar/SoftSnackbarIconRoot";
 
 function SoftSnackbar({ color = "info", icon, title, dateTime, content, close, bgWhite = false, ...rest }) {
   const { size } = typography;

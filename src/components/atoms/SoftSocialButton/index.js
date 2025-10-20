@@ -19,7 +19,7 @@ import { forwardRef } from "react";
 import PropTypes from "prop-types";
 
 // Custom styles for SoftSocialButton
-import SoftSocialButtonRoot from "components/SoftSocialButton/SoftSocialButtonRoot";
+import SoftSocialButtonRoot from "@/components/atoms/SoftSocialButton/SoftSocialButtonRoot";
 
 const SoftSocialButton = forwardRef(
   ({ color = "facebook", size = "medium", iconOnly = false, circular = false, children, ...rest }, ref) => (
