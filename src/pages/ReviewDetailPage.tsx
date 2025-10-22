@@ -9,12 +9,17 @@ import {
   List,
   CircularProgress,
   Button,
+  Modal,
+  ListItem,
+  ListItemText,
+  IconButton,
 } from "@mui/material";
 import { useAuthStore } from "../stores/authStore";
 import CommentForm from "../components/CommentForm";
 import CommentItem from "../components/CommentItem";
-import LikeButton from "../components/LikeButton";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
+import LikeButton from "../components/LikeButton";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // 아이콘 import
 
 // 백엔드로부터 받아올 리뷰 데이터의 타입 정의
 interface Review {
@@ -24,8 +29,8 @@ interface Review {
   location: string;
   text: string;
   rating: number;
-  likeCount: number; // likeCount 필드 추가
-  isLiked: boolean;  // isLiked 필드 추가
+  likeCount: number;
+  isLiked: boolean;
 }
 
 // 백엔드로부터 받아올 댓글 데이터의 타입 정의
@@ -35,6 +40,11 @@ interface Comment {
   text: string;
 }
 
+// '좋아요' 누른 사용자 정보 타입 정의
+interface Liker {
+  nickname: string;
+}
+
 function ReviewDetailPage() {
   const { reviewId } = useParams<{ reviewId: string }>();
   const navigate = useNavigate();
@@ -42,6 +52,11 @@ function ReviewDetailPage() {
   const [review, setReview] = useState<Review | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(null);
+
+  // '좋아요' 목록 모달 상태 관리
+  const [isLikersModalOpen, setIsLikersModalOpen] = useState(false);
+  const [likersList, setLikersList] = useState<Liker[]>([]);
+  const [isLoadingLikers, setIsLoadingLikers] = useState(false);
 
   // 댓글 목록을 다시 불러오는 함수
   const fetchComments = async () => {
@@ -64,7 +79,7 @@ function ReviewDetailPage() {
         const response = await axiosInstance.get(`/api/reviews/${reviewId}`);
         setReview(response.data);
 
-        // 리뷰 로딩 성공 후, 주소를 좌표로 변환
+        // 주소를 좌표로 변환
         if (response.data.location && window.kakao && window.kakao.maps && window.kakao.maps.services) {
           const geocoder = new window.kakao.maps.services.Geocoder();
           geocoder.addressSearch(response.data.location, (result, status) => {
@@ -99,6 +114,22 @@ function ReviewDetailPage() {
         alert("리뷰 삭제에 실패했습니다.");
         console.error("리뷰 삭제 오류:", error);
       }
+    }
+  };
+
+  // '좋아요' 누른 사용자 목록을 불러오고 모달을 여는 함수
+  const handleOpenLikersModal = async () => {
+    if (!reviewId || isLoadingLikers) return;
+    setIsLoadingLikers(true);
+    try {
+      const response = await axiosInstance.get(`/api/reviews/${reviewId}/likers`);
+      setLikersList(response.data);
+      setIsLikersModalOpen(true);
+    } catch (error) {
+      console.error("좋아요 목록을 불러오는 데 실패했습니다.", error);
+      alert("좋아요 목록을 불러올 수 없습니다.");
+    } finally {
+      setIsLoadingLikers(false);
     }
   };
 
@@ -151,13 +182,23 @@ function ReviewDetailPage() {
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2, mb: 2 }}>
         <Typography color="text.secondary">by {review.authorNickname}</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant="h6" sx={{ mr: 2 }}>⭐ {review.rating} / 5</Typography>
-          {/* 좋아요 버튼 컴포넌트 사용 */}
+          <Typography variant="h6" sx={{ mr: 1 }}>⭐ {review.rating} / 5</Typography>
+          {/* 좋아요 버튼 */}
           <LikeButton
             reviewId={reviewId!}
             initialLikeCount={review.likeCount}
             initialIsLiked={review.isLiked}
           />
+          {/* 좋아요 목록 보기 버튼 */}
+          <IconButton
+            aria-label="view likers"
+            onClick={handleOpenLikersModal}
+            size="small"
+            sx={{ ml: 0.5 }}
+            disabled={isLoadingLikers}
+          >
+            <AccountCircleIcon fontSize="small" />
+          </IconButton>
         </Box>
       </Box>
 
@@ -186,6 +227,48 @@ function ReviewDetailPage() {
           <CommentForm reviewId={reviewId} onCommentAdded={fetchComments} />
         </Box>
       )}
+
+      {/* '좋아요' 목록 모달 창 */}
+      <Modal
+        open={isLikersModalOpen}
+        onClose={() => setIsLikersModalOpen(false)}
+        aria-labelledby="likers-modal-title"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'background.paper',
+          border: '2px solid #000',
+          boxShadow: 24,
+          p: 4,
+        }}>
+          <Typography id="likers-modal-title" variant="h6" component="h2">
+            좋아요 누른 사람
+          </Typography>
+          {isLoadingLikers ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <List sx={{ mt: 2, maxHeight: 300, overflow: 'auto' }}>
+              {likersList.length > 0 ? (
+                 likersList.map((liker, index) => (
+                  <ListItem key={index}>
+                    <ListItemText primary={liker.nickname} />
+                  </ListItem>
+                 ))
+              ) : (
+                <Typography sx={{ mt: 2 }}>좋아요를 누른 사람이 없습니다.</Typography>
+              )}
+            </List>
+          )}
+          <Button onClick={() => setIsLikersModalOpen(false)} sx={{ mt: 2 }}>닫기</Button>
+        </Box>
+      </Modal>
+
     </Container>
   );
 }
