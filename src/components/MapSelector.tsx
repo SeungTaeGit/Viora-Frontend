@@ -1,19 +1,19 @@
-import { useEffect, useState } from 'react';
-import { Map, MapMarker } from 'react-kakao-maps-sdk';
+// src/components/MapSelector.tsx
 
-// 부모 컴포넌트로부터 받을 데이터(props)의 타입을 정의합니다.
+import { useEffect, useState, useRef } from 'react';
+import { Map, MapMarker } from 'react-kakao-maps-sdk';
+import { Box, TextField, Button } from '@mui/material'; // MUI 컴포넌트 추가
+
 interface MapSelectorProps {
   onAddressSelect: (address: string) => void;
-  initialCenter?: { lat: number; lng: number }; // 수정 페이지를 위한 초기 위치 (선택 사항)
+  initialCenter?: { lat: number; lng: number };
 }
 
 function MapSelector({ onAddressSelect, initialCenter }: MapSelectorProps) {
-  // 지도의 초기 중심점을 설정합니다.
-  // 부모로부터 initialCenter를 받으면 그 값을, 없으면 서울 시청을 기본값으로 사용합니다.
   const defaultCenter = initialCenter || { lat: 37.5666103, lng: 126.9783882 };
-
-  // 지도와 마커의 상태를 관리합니다.
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
+  const [map, setMap] = useState<kakao.maps.Map | null>(null); // 지도 객체 상태 추가
+  const [keyword, setKeyword] = useState(''); // 검색어 상태 추가
 
   // 지도 클릭 이벤트 핸들러
   const handleMapClick = (_target: kakao.maps.Map, mouseEvent: kakao.maps.event.MouseEvent) => {
@@ -21,37 +21,87 @@ function MapSelector({ onAddressSelect, initialCenter }: MapSelectorProps) {
       lat: mouseEvent.latLng.getLat(),
       lng: mouseEvent.latLng.getLng(),
     };
-    setMarkerPosition(newPos); // 클릭한 위치로 마커 이동
+    setMarkerPosition(newPos);
   };
 
-  // 마커의 위치가 변경될 때마다 좌표를 주소로 변환합니다.
+  // 마커 위치 변경 시 주소 변환
   useEffect(() => {
-    // Geocoder 객체를 생성합니다.
+    if (!window.kakao || !window.kakao.maps || !window.kakao.maps.services) return;
     const geocoder = new kakao.maps.services.Geocoder();
-
-    // 좌표로 주소를 검색합니다.
     geocoder.coord2Address(markerPosition.lng, markerPosition.lat, (result, status) => {
       if (status === kakao.maps.services.Status.OK) {
-        // 도로명 주소가 있으면 그것을 사용하고, 없으면 지번 주소를 사용합니다.
         const roadAddress = result[0].road_address ? result[0].road_address.address_name : '';
         const jibunAddress = result[0].address.address_name;
-
-        // 부모 컴포넌트(ReviewWritePage, ReviewEditPage)에 변환된 주소를 전달합니다.
         onAddressSelect(roadAddress || jibunAddress);
       }
     });
-  }, [markerPosition, onAddressSelect]); // 마커 위치가 바뀔 때마다 실행
+  }, [markerPosition, onAddressSelect]);
+
+  // 장소 검색 함수
+  const searchPlaces = () => {
+    if (!map || !keyword.trim()) return; // 지도 객체가 없거나 검색어가 비어있으면 중단
+
+    const ps = new kakao.maps.services.Places();
+    // 키워드로 장소를 검색합니다
+    ps.keywordSearch(keyword, (data, status) => {
+      if (status === kakao.maps.services.Status.OK) {
+        // 검색된 장소 위치를 기준으로 지도 범위를 재설정하기위해
+        // LatLngBounds 객체에 좌표를 추가합니다
+        const bounds = new kakao.maps.LatLngBounds();
+        if (data.length > 0) {
+           const place = data[0]; // 첫 번째 결과 사용
+           const position = {
+               lat: parseFloat(place.y),
+               lng: parseFloat(place.x),
+           };
+           setMarkerPosition(position); // 마커 위치 이동
+           bounds.extend(new kakao.maps.LatLng(position.lat, position.lng));
+           map.setBounds(bounds); // 검색 결과 위치로 지도 이동
+        } else {
+            alert('검색 결과가 없습니다.');
+        }
+      } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
+          alert('검색 결과가 존재하지 않습니다.');
+          return;
+      } else if (status === kakao.maps.services.Status.ERROR) {
+          alert('검색 결과 중 오류가 발생했습니다.');
+          return;
+      }
+    });
+  };
 
   return (
-    <Map
-      center={markerPosition} // 지도의 중심을 마커 위치와 동기화
-      style={{ width: '100%', height: '100%' }}
-      level={3} // 지도 확대 레벨
-      onClick={handleMapClick}
-    >
-      <MapMarker position={markerPosition} />
-    </Map>
+    <Box>
+      {/* 검색창과 버튼 */}
+      <Box sx={{ display: 'flex', mb: 2 }}>
+        <TextField
+          label="장소 검색"
+          variant="outlined"
+          fullWidth
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') searchPlaces(); }} // Enter 키로도 검색
+        />
+        <Button variant="contained" onClick={searchPlaces} sx={{ ml: 1 }}>
+          검색
+        </Button>
+      </Box>
+      {/* 지도 */}
+      <Box sx={{ width: '100%', height: '400px' }}>
+        <Map
+          center={markerPosition} // 지도의 중심을 마커 위치와 동기화
+          style={{ width: '100%', height: '100%' }}
+          level={3}
+          onClick={handleMapClick}
+          onCreate={setMap} // 지도 객체를 state에 저장
+        >
+          <MapMarker position={markerPosition} />
+        </Map>
+      </Box>
+    </Box>
   );
 }
 
-export default MapSelector;
+// MapContainer는 이제 필요 없으므로 삭제하거나, MapSelector를 직접 사용하도록 수정합니다.
+// export default MapContainer;
+export default MapSelector; // MapSelector를 직접 export 합니다.
