@@ -3,7 +3,7 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // '페이지 이동' 전문가 import
+import { useRouter } from "next/router"; // Next.js 페이지 이동
 import { useAuthStore } from '../stores/authStore'; // 관제실 import
 import axiosInstance from '../api/axiosInstance'; // 새로운 axiosInstance import
 
@@ -11,7 +11,7 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuthStore(); // 관제실의 login 기능 가져오기
-  const navigate = useNavigate(); // '페이지 이동' 전문가를 불러옵니다.
+  const router = useRouter(); // Next.js 라우터
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -23,7 +23,7 @@ function LoginPage() {
       await login(accessToken);
 
       alert('로그인에 성공했습니다!');
-      navigate('/');
+      router.push('/');
     } catch (error) {
       alert("로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.");
       console.error("로그인 오류:", error);
