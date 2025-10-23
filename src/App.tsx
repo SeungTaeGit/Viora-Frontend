@@ -7,10 +7,11 @@ import HomePage from "./pages/HomePage";
 import Header from "./components/Header";
 import SignupPage from "./pages/SignupPage";
 import ReviewDetailPage from "./pages/ReviewDetailPage";
-import ProtectedRoute from './components/ProtectedRoute'; // 보호된 경로 컴포넌트
-import ReviewWritePage from './pages/ReviewWritePage'; // 리뷰 작성 페이지
-import ReviewEditPage from './pages/ReviewEditPage'; // 리뷰 수정 페이지 (추가)
+import ProtectedRoute from './components/ProtectedRoute';
+import ReviewWritePage from './pages/ReviewWritePage';
+import ReviewEditPage from './pages/ReviewEditPage';
 import { Box, CircularProgress } from "@mui/material";
+import MyPage from './pages/MyPage';
 
 function App() {
   const { login, setUser, setLoading, isLoading } = useAuthStore();
@@ -58,9 +59,8 @@ function App() {
           {/* 보호된 경로 (로그인 필요) */}
           <Route element={<ProtectedRoute />}>
             <Route path="/write-review" element={<ReviewWritePage />} />
-            {/* 리뷰 수정 경로 추가 */}
             <Route path="/reviews/:reviewId/edit" element={<ReviewEditPage />} />
-            {/* <Route path="/mypage" element={<MyPage />} /> */}
+            <Route path="/mypage" element={<MyPage />} />
           </Route>
         </Routes>
       </main>
