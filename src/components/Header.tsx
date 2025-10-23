@@ -1,5 +1,3 @@
-// src/components/Header.tsx
-
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
@@ -28,7 +26,6 @@ function Header() {
 
         {isLoggedIn ? (
           <Box>
-            {/* --- ❗️ 여기에 '리뷰 쓰기' 버튼을 추가합니다 ❗️ --- */}
             <Button color="inherit" component={Link} to="/write-review">
               리뷰 쓰기
             </Button>
