@@ -24,6 +24,10 @@ function Header() {
           Viora
         </Typography>
 
+        <Button color="inherit" component={Link} to="/reviews">
+          탐색
+        </Button>
+
         {isLoggedIn ? (
           <Box>
             <Button color="inherit" component={Link} to="/write-review">
