@@ -1,11 +1,10 @@
 // src/pages/HomePage.tsx
-
 import { useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
-import ReviewCard from "../components/ReviewCard"; // 1. 방금 만든 리뷰 카드 import
-import { Box, Container, Typography } from "@mui/material";
+import ReviewCard from "../components/ReviewCard";
+import { Box, Container, Typography, CircularProgress } from "@mui/material"; // CircularProgress 추가
 
-// 백엔드에서 받아올 리뷰 데이터의 타입을 정의
+// Review 타입 정의 (이전과 동일)
 interface Review {
   id: number;
   authorNickname: string;
@@ -16,42 +15,93 @@ interface Review {
 }
 
 function HomePage() {
-  // 2. 받아온 리뷰 목록을 기억할 공간
-  const [reviews, setReviews] = useState<Review[]>([]);
+  // ❗️ 상태 변수를 두 개로 나눕니다.
+  const [latestReviews, setLatestReviews] = useState<Review[]>([]);
+  const [popularReviews, setPopularReviews] = useState<Review[]>([]);
+  const [loadingLatest, setLoadingLatest] = useState(true); // 최신 리뷰 로딩 상태
+  const [loadingPopular, setLoadingPopular] = useState(true); // 인기 리뷰 로딩 상태
 
-  // 3. 페이지가 처음 렌더링될 때 딱 한 번 실행될 로직
   useEffect(() => {
-    const fetchReviews = async () => {
+    // ❗️ 데이터를 가져오는 함수도 두 개로 분리합니다.
+    const fetchLatestReviews = async () => {
+      setLoadingLatest(true);
       try {
-        // 백엔드의 리뷰 목록 조회 API 호출 (페이지네이션 적용)
-        const response = await axiosInstance.get("/api/reviews?page=0&size=10");
-        setReviews(response.data.content); // 받아온 데이터(content 배열)를 기억 공간에 저장
+        // 최신순 API 호출 (기본 /api/reviews)
+        const response = await axiosInstance.get("/api/reviews?page=0&size=5"); // 예시: 5개만 가져오기
+        setLatestReviews(response.data.content);
       } catch (error) {
-        console.error("리뷰를 불러오는 데 실패했습니다.", error);
+        console.error("최신 리뷰를 불러오는 데 실패했습니다.", error);
+      } finally {
+        setLoadingLatest(false);
       }
     };
 
-    fetchReviews();
-  }, []); // 빈 배열은 "처음 한 번만 실행"하라는 의미
+    const fetchPopularReviews = async () => {
+      setLoadingPopular(true);
+      try {
+        // 인기순 API 호출 (/api/reviews/popular)
+        const response = await axiosInstance.get("/api/reviews/popular?page=0&size=5"); // 예시: 5개만 가져오기
+        setPopularReviews(response.data.content);
+      } catch (error) {
+        console.error("인기 리뷰를 불러오는 데 실패했습니다.", error);
+      } finally {
+        setLoadingPopular(false);
+      }
+    };
+
+    fetchLatestReviews();
+    fetchPopularReviews();
+  }, []); // 처음 한 번만 실행
 
   return (
-    <Container component="main" maxWidth="md">
-      <Box sx={{ marginTop: 4 }}>
+    <Container component="main" maxWidth="lg" sx={{ mt: 4, mb: 4 }}> {/* maxWidth 변경 */}
+
+      {/* --- 최신 리뷰 섹션 --- */}
+      <Box sx={{ mb: 4 }}> {/* 섹션 간 마진 추가 */}
         <Typography variant="h4" component="h1" gutterBottom>
-          모든 리뷰
+          ✨ 최신 리뷰
         </Typography>
-        {/* 4. 받아온 리뷰 목록을 순회하며 '리뷰 카드'를 하나씩 보여줌 */}
-        {reviews.map((review) => (
-          <ReviewCard
-            key={review.id}
-            id={review.id}
-            authorNickname={review.authorNickname}
-            category={review.category}
-            contentName={review.contentName}
-            text={review.text}
-            rating={review.rating}
-          />
-        ))}
+        {loadingLatest ? (
+          <CircularProgress />
+        ) : latestReviews.length > 0 ? (
+          latestReviews.map((review) => (
+            <ReviewCard
+              key={'latest-' + review.id} // key 값 중복 방지
+              id={review.id}
+              authorNickname={review.authorNickname}
+              category={review.category}
+              contentName={review.contentName}
+              text={review.text}
+              rating={review.rating}
+            />
+          ))
+        ) : (
+          <Typography>최신 리뷰가 없습니다.</Typography>
+        )}
+      </Box>
+
+      {/* --- 인기 리뷰 섹션 --- */}
+      <Box>
+        <Typography variant="h4" component="h1" gutterBottom>
+          🔥 인기 리뷰 (좋아요 순)
+        </Typography>
+        {loadingPopular ? (
+          <CircularProgress />
+        ) : popularReviews.length > 0 ? (
+          popularReviews.map((review) => (
+            <ReviewCard
+              key={'popular-' + review.id} // key 값 중복 방지
+              id={review.id}
+              authorNickname={review.authorNickname}
+              category={review.category}
+              contentName={review.contentName}
+              text={review.text}
+              rating={review.rating}
+            />
+          ))
+        ) : (
+          <Typography>인기 리뷰가 없습니다.</Typography>
+        )}
       </Box>
     </Container>
   );
