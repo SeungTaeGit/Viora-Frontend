@@ -13,6 +13,7 @@ import ReviewEditPage from './pages/ReviewEditPage';
 import { Box, CircularProgress } from "@mui/material";
 import MyPage from './pages/MyPage';
 import AllReviewsPage from './pages/AllReviewsPage';
+import OAuthRedirectPage from './pages/OAuthRedirectPage';
 
 function App() {
   const { login, setUser, setLoading, isLoading } = useAuthStore();
@@ -57,6 +58,7 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/reviews/:reviewId" element={<ReviewDetailPage />} />
           <Route path="/reviews" element={<AllReviewsPage />} />
+          <Route path="/oauth-redirect" element={<OAuthRedirectPage />} />
 
           {/* 보호된 경로 (로그인 필요) */}
           <Route element={<ProtectedRoute />}>
