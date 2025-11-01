@@ -2,48 +2,70 @@
 
 import { useState, useEffect } from 'react';
 import axiosInstance from '../api/axiosInstance';
-import { Box, CircularProgress, Typography, Pagination, Container } from '@mui/material';
-import ReviewCard from '../components/ReviewCard'; // ReviewCard 컴포넌트 import
+import {
+  Box, CircularProgress, Typography, Pagination, Container,
+  TextField, Button, Select, MenuItem, FormControl, InputLabel
+} from '@mui/material';
+// ❗️ SelectChangeEvent import 구문이 완전히 삭제되었습니다.
+import ReviewCard from '../components/ReviewCard';
+import SearchIcon from '@mui/icons-material/Search';
 
-// 백엔드 API 응답 타입 (페이지 정보 포함)
-interface ReviewPage {
-  content: Review[];
-  totalPages: number;
-  number: number; // 현재 페이지 번호 (0부터 시작)
-}
-interface Review {
-  id: number;
-  authorNickname: string;
-  category: string;
-  contentName: string;
-  text: string;
-  rating: number;
-}
+// ... (ReviewPage, Review 인터페이스 정의는 동일)
+
+// 검색 유형 옵션
+const searchOptions = [
+    { value: 'contentName', label: '콘텐츠 이름' },
+    { value: 'text', label: '리뷰 내용' },
+    { value: 'category', label: '카테고리' },
+    { value: 'author', label: '작성자' },
+];
 
 function AllReviewsPage() {
   const [reviewPage, setReviewPage] = useState<ReviewPage | null>(null);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0); // 현재 페이지 상태 (0부터 시작)
-  const pageSize = 10; // 한 페이지에 보여줄 리뷰 개수
+  const [page, setPage] = useState(0);
+
+  const [searchType, setSearchType] = useState('contentName');
+  const [keyword, setKeyword] = useState('');
+  const [currentSearch, setCurrentSearch] = useState({ type: '', keyword: '' });
+
+  const pageSize = 10;
 
   useEffect(() => {
-    const fetchAllReviews = async () => {
+    const fetchReviews = async () => {
       setLoading(true);
+      let url = '/api/reviews';
+      const params = new URLSearchParams({
+          page: page.toString(),
+          size: pageSize.toString(),
+          sort: 'createdAt,desc'
+      });
+
+      if (currentSearch.keyword) {
+        url = '/api/reviews/search';
+        params.append('type', currentSearch.type);
+        params.append('keyword', currentSearch.keyword);
+      }
+
       try {
-        // 백엔드 API 호출 (최신순 정렬 기본값 사용)
-        const response = await axiosInstance.get(`/api/reviews?page=${page}&size=${pageSize}&sort=createdAt,desc`);
+        const response = await axiosInstance.get(url, { params });
         setReviewPage(response.data);
       } catch (error) {
-        console.error("모든 리뷰를 불러오는 데 실패했습니다.", error);
+        console.error("리뷰를 불러오는 데 실패했습니다.", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchAllReviews();
-  }, [page]); // page 상태가 변경될 때마다 API 다시 호출
+    fetchReviews();
+  }, [page, currentSearch]);
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value - 1); // MUI Pagination은 1부터 시작, API는 0부터 시작
+    setPage(value - 1);
+  };
+
+  const handleSearch = () => {
+    setPage(0);
+    setCurrentSearch({ type: searchType, keyword: keyword });
   };
 
   return (
@@ -52,6 +74,37 @@ function AllReviewsPage() {
         모든 리뷰 둘러보기
       </Typography>
 
+      <Box sx={{ display: 'flex', gap: 1, mb: 4, alignItems: 'center' }}>
+        <FormControl sx={{ minWidth: 120 }} size="small">
+          <InputLabel>검색 기준</InputLabel>
+          <Select
+            value={searchType}
+            label="검색 기준"
+            // ❗️ ❗️ event 타입을 'any'로 변경하여 오류를 우회합니다. ❗️ ❗️
+            onChange={(e: any) => setSearchType(e.target.value)}
+          >
+            {searchOptions.map(option => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <TextField
+          label="검색어 입력"
+          variant="outlined"
+          size="small"
+          fullWidth
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+        />
+        <Button variant="contained" onClick={handleSearch} startIcon={<SearchIcon />}>
+          검색
+        </Button>
+      </Box>
+
+      {/* ... (이하 리뷰 목록 렌더링 코드는 동일) ... */}
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
            <CircularProgress />
@@ -71,20 +124,21 @@ function AllReviewsPage() {
               />
             ))}
           </Box>
-          {/* 페이지네이션 UI */}
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
             <Pagination
               count={reviewPage.totalPages}
-              page={page + 1} // MUI Pagination은 1부터 시작
+              page={page + 1}
               onChange={handlePageChange}
               color="primary"
-              showFirstButton // 처음 페이지 버튼
-              showLastButton // 마지막 페이지 버튼
+              showFirstButton
+              showLastButton
             />
           </Box>
         </>
       ) : (
-        <Typography sx={{ mt: 3 }}>아직 작성된 리뷰가 없습니다.</Typography>
+        <Typography sx={{ mt: 3 }}>
+          {currentSearch.keyword ? '검색 결과가 없습니다.' : '아직 작성된 리뷰가 없습니다.'}
+        </Typography>
       )}
     </Container>
   );
