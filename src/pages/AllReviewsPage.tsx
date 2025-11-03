@@ -1,18 +1,12 @@
-// src/pages/AllReviewsPage.tsx
-
 import { useState, useEffect } from 'react';
 import axiosInstance from '../api/axiosInstance';
 import {
   Box, CircularProgress, Typography, Pagination, Container,
   TextField, Button, Select, MenuItem, FormControl, InputLabel
 } from '@mui/material';
-// ❗️ SelectChangeEvent import 구문이 완전히 삭제되었습니다.
-import ReviewCard from '../components/ReviewCard';
+import ReviewCard from "../components/organisms/ReviewCard";
 import SearchIcon from '@mui/icons-material/Search';
 
-// ... (ReviewPage, Review 인터페이스 정의는 동일)
-
-// 검색 유형 옵션
 const searchOptions = [
     { value: 'contentName', label: '콘텐츠 이름' },
     { value: 'text', label: '리뷰 내용' },

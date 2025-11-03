@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axiosInstance from '../api/axiosInstance';
 import { Box, CircularProgress, Typography, Pagination } from '@mui/material';
-import ReviewCard from './ReviewCard';
+import ReviewCard from "./organisms/ReviewCard";
 
 function LikedReviewsTab() {
   const [reviewPage, setReviewPage] = useState<ReviewPage | null>(null);
