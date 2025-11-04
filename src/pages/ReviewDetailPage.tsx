@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import axiosInstance from "../api/axiosInstance";
+import { useParams, Link } from "react-router-dom";
 import {
   Box,
   Container,
@@ -14,132 +12,50 @@ import {
   ListItemText,
   IconButton,
 } from "@mui/material";
-import { useAuthStore } from "../stores/authStore";
+import { Map, MapMarker } from "react-kakao-maps-sdk";
 import CommentForm from "../components/CommentForm";
 import CommentItem from "../components/CommentItem";
-import { Map, MapMarker } from "react-kakao-maps-sdk";
 import LikeButton from "../components/LikeButton";
-import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // 아이콘 import
-
-// 백엔드로부터 받아올 리뷰 데이터의 타입 정의
-interface Review {
-  authorNickname: string;
-  category: string;
-  contentName: string;
-  location: string;
-  text: string;
-  rating: number;
-  likeCount: number;
-  isLiked: boolean;
-}
-
-// 백엔드로부터 받아올 댓글 데이터의 타입 정의
-interface Comment {
-  id: number;
-  authorNickname: string;
-  text: string;
-}
-
-// '좋아요' 누른 사용자 정보 타입 정의
-interface Liker {
-  nickname: string;
-}
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { useReviewDetail } from "../hooks/useReviewDetail"; // ❗️ 훅 import
 
 function ReviewDetailPage() {
+  // ❗️ reviewId는 훅 내부에서도 필요하지만,
+  // ❗️ CommentForm에 전달하기 위해 여기서도 가져옵니다.
+  // ❗️ (더 좋은 방법은 훅이 reviewId도 반환하는 것입니다.)
   const { reviewId } = useParams<{ reviewId: string }>();
-  const navigate = useNavigate();
-  const { user, isLoading: isAuthLoading, isLoggedIn } = useAuthStore();
-  const [review, setReview] = useState<Review | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(null);
 
-  // '좋아요' 목록 모달 상태 관리
-  const [isLikersModalOpen, setIsLikersModalOpen] = useState(false);
-  const [likersList, setLikersList] = useState<Liker[]>([]);
-  const [isLoadingLikers, setIsLoadingLikers] = useState(false);
+  // ❗️ 모든 로직을 훅에서 가져옵니다.
+  const {
+    review,
+    comments,
+    markerPosition, // ❗️ 훅에서 받은 마커 위치
+    isLikersModalOpen,
+    likersList,
+    isLoadingLikers,
+    loading,
+    isLoggedIn,
+    user,
+    fetchComments,
+    handleDeleteReview,
+    handleOpenLikersModal,
+    handleCloseLikersModal,
+  } = useReviewDetail(); // ❗️ 훅 호출
 
-  // 댓글 목록을 다시 불러오는 함수
-  const fetchComments = async () => {
-    if (!reviewId) return;
-    try {
-      const response = await axiosInstance.get(
-        `/api/reviews/${reviewId}/comments`
-      );
-      setComments(response.data.content);
-    } catch (error) {
-      console.error("댓글을 불러오는 데 실패했습니다.", error);
-    }
-  };
-
-  // 페이지가 처음 로딩될 때 리뷰와 댓글 데이터를 가져옵니다.
-  useEffect(() => {
-    const fetchReviewDetail = async () => {
-      if (!reviewId) return;
-      try {
-        const response = await axiosInstance.get(`/api/reviews/${reviewId}`);
-        setReview(response.data);
-
-        // 주소를 좌표로 변환
-        if (response.data.location && window.kakao && window.kakao.maps && window.kakao.maps.services) {
-          const geocoder = new window.kakao.maps.services.Geocoder();
-          geocoder.addressSearch(response.data.location, (result, status) => {
-            if (status === window.kakao.maps.services.Status.OK) {
-              setMarkerPosition({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
-            } else {
-              console.warn("주소를 좌표로 변환하는데 실패했습니다:", response.data.location);
-              setMarkerPosition(null);
-            }
-          });
-        } else {
-             setMarkerPosition(null);
-        }
-      } catch (error) {
-        console.error("리뷰 상세 정보를 불러오는 데 실패했습니다.", error);
-        setReview(null);
-      }
-    };
-
-    fetchReviewDetail();
-    fetchComments();
-  }, [reviewId]);
-
-  // 리뷰 삭제 처리 함수
-  const handleDeleteReview = async () => {
-    if (window.confirm("정말로 이 리뷰를 삭제하시겠습니까?")) {
-      try {
-        await axiosInstance.delete(`/api/reviews/${reviewId}`);
-        alert("리뷰가 삭제되었습니다.");
-        navigate("/");
-      } catch (error) {
-        alert("리뷰 삭제에 실패했습니다.");
-        console.error("리뷰 삭제 오류:", error);
-      }
-    }
-  };
-
-  // '좋아요' 누른 사용자 목록을 불러오고 모달을 여는 함수
-  const handleOpenLikersModal = async () => {
-    if (!reviewId || isLoadingLikers) return;
-    setIsLoadingLikers(true);
-    try {
-      const response = await axiosInstance.get(`/api/reviews/${reviewId}/likers`);
-      setLikersList(response.data);
-      setIsLikersModalOpen(true);
-    } catch (error) {
-      console.error("좋아요 목록을 불러오는 데 실패했습니다.", error);
-      alert("좋아요 목록을 불러올 수 없습니다.");
-    } finally {
-      setIsLoadingLikers(false);
-    }
-  };
+  // ❗️ useEffect, useState, 로직 함수들이 모두 사라졌습니다.
 
   // 로딩 처리
-  if (isAuthLoading || !review) {
+  if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <CircularProgress />
       </Box>
     );
+  }
+
+  // 리뷰가 없는 경우
+  if (!review) {
+      return <Typography sx={{ p: 2 }}>해당 리뷰를 찾을 수 없습니다.</Typography>;
   }
 
   return (
@@ -183,13 +99,11 @@ function ReviewDetailPage() {
         <Typography color="text.secondary">by {review.authorNickname}</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography variant="h6" sx={{ mr: 1 }}>⭐ {review.rating} / 5</Typography>
-          {/* 좋아요 버튼 */}
           <LikeButton
             reviewId={reviewId!}
             initialLikeCount={review.likeCount}
             initialIsLiked={review.isLiked}
           />
-          {/* 좋아요 목록 보기 버튼 */}
           <IconButton
             aria-label="view likers"
             onClick={handleOpenLikersModal}
@@ -213,7 +127,7 @@ function ReviewDetailPage() {
           <CommentItem
             key={comment.id}
             comment={comment}
-            onCommentUpdated={fetchComments}
+            onCommentUpdated={fetchComments} // 훅에서 받은 함수 전달
           />
         ))}
       </List>
@@ -231,7 +145,7 @@ function ReviewDetailPage() {
       {/* '좋아요' 목록 모달 창 */}
       <Modal
         open={isLikersModalOpen}
-        onClose={() => setIsLikersModalOpen(false)}
+        onClose={handleCloseLikersModal} // 훅에서 받은 함수 사용
         aria-labelledby="likers-modal-title"
       >
         <Box sx={{
@@ -265,7 +179,7 @@ function ReviewDetailPage() {
               )}
             </List>
           )}
-          <Button onClick={() => setIsLikersModalOpen(false)} sx={{ mt: 2 }}>닫기</Button>
+          <Button onClick={handleCloseLikersModal} sx={{ mt: 2 }}>닫기</Button>
         </Box>
       </Modal>
 
@@ -274,3 +188,4 @@ function ReviewDetailPage() {
 }
 
 export default ReviewDetailPage;
+
