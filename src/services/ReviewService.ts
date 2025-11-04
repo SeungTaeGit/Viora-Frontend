@@ -1,9 +1,10 @@
 import { reviewRepository } from "../repositories/ReviewRepository";
 import type { ReviewItem, ReviewPageItem } from "../types/review.item";
 import type { ReviewModel, ReviewPageModel } from "../types/review.model";
+import type { Pageable, SearchQuery } from "../types/page.ts";
 
 class ReviewService {
-  
+
   // '번역기': API 모델(Model)을 UI 아이템(Item)으로 변환
   private modelToItem(model: ReviewModel): ReviewItem {
     return {
@@ -32,38 +33,46 @@ class ReviewService {
    * HomePage에서 필요한 모든 데이터를 한 번에 가져오는 로직
    */
   async getHomePageData(isLoggedIn: boolean) {
-    
-    // 1. API 호출 목록 준비
-    const promisesToAwait = [
-      reviewRepository.getLatestReviews(0, 5), // 최신 5개
-      reviewRepository.getPopularReviews(0, 5)  // 인기 5개
+    const promisesToAwait: Promise<any>[] = [
+      reviewRepository.getLatestReviews({ page: 0, size: 5 }),
+      reviewRepository.getPopularReviews({ page: 0, size: 5 })
     ];
 
-    // 2. 로그인 상태일 때만 추천 API 호출 목록에 추가
     if (isLoggedIn) {
       promisesToAwait.push(reviewRepository.getRecommendedReviews());
     }
 
-    // 3. API들을 '동시에' 호출
     const responses = await Promise.all(promisesToAwait);
 
-    // 4. 결과를 '번역'
     const latestReviews = this.modelPageToItemPage(responses[0].data);
     const popularReviews = this.modelPageToItemPage(responses[1].data);
-    
+
     let recommendedReviews: ReviewItem[] = [];
     if (isLoggedIn && responses[2]) {
-      // 추천 리뷰는 Page가 아닌 Array(ReviewModel[])라고 가정
       const recommendedData = responses[2].data as ReviewModel[];
       recommendedReviews = recommendedData.map(this.modelToItem);
     }
 
-    // 5. Hook이 사용하기 좋은 형태로 묶어서 반환
     return { latestReviews, popularReviews, recommendedReviews };
   }
 
-  // TODO: 나중에 getReviewById, createReview 등의 서비스 로직도 이곳에 추가합니다.
+  // --- ❗️ 여기에 새로운 메서드들을 추가합니다 ❗️ ---
+
+  /**
+   * 모든 리뷰 목록 조회 (AllReviewsPage용)
+   */
+  async getAllReviews(pageable: Pageable): Promise<ReviewPageItem> {
+    const response = await reviewRepository.getAllReviews(pageable);
+    return this.modelPageToItemPage(response.data);
+  }
+
+  /**
+   * 리뷰 검색 (AllReviewsPage용)
+   */
+  async searchReviews(searchQuery: SearchQuery, pageable: Pageable): Promise<ReviewPageItem> {
+    const response = await reviewRepository.searchReviews(searchQuery, pageable);
+    return this.modelPageToItemPage(response.data);
+  }
 }
 
-// 싱글톤 인스턴스로 export
 export const reviewService = new ReviewService();
