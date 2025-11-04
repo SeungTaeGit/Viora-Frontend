@@ -1,66 +1,32 @@
-import { useState, useEffect } from 'react';
-import axiosInstance from '../api/axiosInstance';
 import {
   Box, CircularProgress, Typography, Pagination, Container,
   TextField, Button, Select, MenuItem, FormControl, InputLabel
 } from '@mui/material';
-import ReviewCard from "../components/organisms/ReviewCard";
+import type { SelectChangeEvent } from '@mui/material/Select';
+import ReviewCard from '../components/organisms/ReviewCard';
 import SearchIcon from '@mui/icons-material/Search';
+import { useAllReviews } from '../hooks/useAllReviews';
 
 const searchOptions = [
-    { value: 'contentName', label: '콘텐츠 이름' },
-    { value: 'text', label: '리뷰 내용' },
-    { value: 'category', label: '카테고리' },
-    { value: 'author', label: '작성자' },
+  { value: 'contentName', label: '콘텐츠 이름' },
+  { value: 'text', label: '리뷰 내용' },
+  { value: 'category', label: '카테고리' },
+  { value: 'author', label: '작성자' },
 ];
 
 function AllReviewsPage() {
-  const [reviewPage, setReviewPage] = useState<ReviewPage | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
-
-  const [searchType, setSearchType] = useState('contentName');
-  const [keyword, setKeyword] = useState('');
-  const [currentSearch, setCurrentSearch] = useState({ type: '', keyword: '' });
-
-  const pageSize = 10;
-
-  useEffect(() => {
-    const fetchReviews = async () => {
-      setLoading(true);
-      let url = '/api/reviews';
-      const params = new URLSearchParams({
-          page: page.toString(),
-          size: pageSize.toString(),
-          sort: 'createdAt,desc'
-      });
-
-      if (currentSearch.keyword) {
-        url = '/api/reviews/search';
-        params.append('type', currentSearch.type);
-        params.append('keyword', currentSearch.keyword);
-      }
-
-      try {
-        const response = await axiosInstance.get(url, { params });
-        setReviewPage(response.data);
-      } catch (error) {
-        console.error("리뷰를 불러오는 데 실패했습니다.", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchReviews();
-  }, [page, currentSearch]);
-
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value - 1);
-  };
-
-  const handleSearch = () => {
-    setPage(0);
-    setCurrentSearch({ type: searchType, keyword: keyword });
-  };
+  const {
+    reviewPage,
+    loading,
+    page,
+    searchType,
+    keyword,
+    setSearchType,
+    setKeyword,
+    handlePageChange,
+    handleSearch,
+    currentSearch
+  } = useAllReviews();
 
   return (
     <Container component="main" maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -68,14 +34,14 @@ function AllReviewsPage() {
         모든 리뷰 둘러보기
       </Typography>
 
+      {/* 검색 UI */}
       <Box sx={{ display: 'flex', gap: 1, mb: 4, alignItems: 'center' }}>
         <FormControl sx={{ minWidth: 120 }} size="small">
           <InputLabel>검색 기준</InputLabel>
           <Select
             value={searchType}
             label="검색 기준"
-            // ❗️ ❗️ event 타입을 'any'로 변경하여 오류를 우회합니다. ❗️ ❗️
-            onChange={(e: any) => setSearchType(e.target.value)}
+            onChange={(e: SelectChangeEvent) => setSearchType(e.target.value)}
           >
             {searchOptions.map(option => (
               <MenuItem key={option.value} value={option.value}>
@@ -98,7 +64,7 @@ function AllReviewsPage() {
         </Button>
       </Box>
 
-      {/* ... (이하 리뷰 목록 렌더링 코드는 동일) ... */}
+      {/* 리뷰 목록 */}
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
            <CircularProgress />
@@ -115,13 +81,15 @@ function AllReviewsPage() {
                 contentName={review.contentName}
                 text={review.text}
                 rating={review.rating}
+                isLiked={false} // 기본값
+                likeCount={0}   // 기본값
               />
             ))}
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
             <Pagination
               count={reviewPage.totalPages}
-              page={page + 1}
+              page={page} // 훅에서 이미 +1 처리된 page를 반환
               onChange={handlePageChange}
               color="primary"
               showFirstButton
