@@ -1,33 +1,48 @@
 import axiosInstance from "../api/axiosInstance";
 import type { ReviewPageModel, ReviewModel } from "../types/review.model";
+import type { Pageable, SearchQuery } from "../types/page.ts";
 
 class ReviewRepository {
   /**
-   * 최신 리뷰 목록 조회 (페이지네이션)
+   * 최신 리뷰 목록 조회 (HomePage용)
    */
-  getLatestReviews(page: number, size: number) {
-    const params = { page, size, sort: "createdAt,desc" };
+  getLatestReviews(pageable: Pageable) {
+    const params = { ...pageable, sort: "createdAt,desc" };
     return axiosInstance.get<ReviewPageModel>("/api/reviews", { params });
   }
 
   /**
-   * 인기 리뷰 목록 조회 (페이지네이션)
+   * 인기 리뷰 목록 조회 (HomePage용)
    */
-  getPopularReviews(page: number, size: number) {
-    const params = { page, size };
+  getPopularReviews(pageable: Pageable) {
+    const params = { ...pageable };
     return axiosInstance.get<ReviewPageModel>("/api/reviews/popular", { params });
   }
 
   /**
-   * 추천 리뷰 목록 조회
-   * (추천 API는 페이지네이션이 아닌 목록을 반환한다고 가정)
+   * 추천 리뷰 목록 조회 (HomePage용)
    */
   getRecommendedReviews() {
     return axiosInstance.get<ReviewModel[]>("/api/reviews/recommended");
   }
 
-  // TODO: 나중에 getReviewById, createReview 등 다른 리뷰 API도 이곳으로 옮깁니다.
+  // --- ❗️ 여기에 새로운 메서드들을 추가합니다 ❗️ ---
+
+  /**
+   * 모든 리뷰 목록 조회 (AllReviewsPage용)
+   */
+  getAllReviews(pageable: Pageable) {
+    const params = { ...pageable, sort: "createdAt,desc" };
+    return axiosInstance.get<ReviewPageModel>("/api/reviews", { params });
+  }
+
+  /**
+   * 리뷰 검색 (AllReviewsPage용)
+   */
+  searchReviews(searchQuery: SearchQuery, pageable: Pageable) {
+    const params = { ...searchQuery, ...pageable, sort: "createdAt,desc" };
+    return axiosInstance.get<ReviewPageModel>("/api/reviews/search", { params });
+  }
 }
 
-// 싱글톤 인스턴스로 export
 export const reviewRepository = new ReviewRepository();
