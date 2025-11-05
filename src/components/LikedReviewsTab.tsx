@@ -1,34 +1,21 @@
-import { useState, useEffect } from 'react';
-import axiosInstance from '../api/axiosInstance';
 import { Box, CircularProgress, Typography, Pagination } from '@mui/material';
-import ReviewCard from "./organisms/ReviewCard";
+import ReviewCard from './organisms/ReviewCard';
+import { useMyLikes } from '../hooks/useMyLikes';
 
 function LikedReviewsTab() {
-  const [reviewPage, setReviewPage] = useState<ReviewPage | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
+  const { reviewPage, loading, page, handlePageChange } = useMyLikes();
 
-  useEffect(() => {
-    const fetchLikedReviews = async () => {
-      setLoading(true);
-      try {
-        const response = await axiosInstance.get(`/api/me/liked-reviews?page=${page}&size=5`);
-        setReviewPage(response.data);
-      } catch (error) {
-        console.error("좋아요 한 리뷰를 불러오는 데 실패했습니다.", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLikedReviews();
-  }, [page]);
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value - 1);
-  };
-
-  if (loading) return <CircularProgress />;
-  if (!reviewPage || reviewPage.content.length === 0) return <Typography>좋아요 한 리뷰가 없습니다.</Typography>;
+  if (!reviewPage || reviewPage.content.length === 0) {
+    return <Typography sx={{ p: 4 }}>좋아요 한 리뷰가 없습니다.</Typography>;
+  }
 
   return (
     <Box>
@@ -43,7 +30,8 @@ function LikedReviewsTab() {
           rating={review.rating}
         />
       ))}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+      {/* 페이지네이션 UI */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
         <Pagination
           count={reviewPage.totalPages}
           page={page + 1}
