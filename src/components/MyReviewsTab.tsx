@@ -1,52 +1,20 @@
-import { useState, useEffect } from 'react';
-import axiosInstance from '../api/axiosInstance';
 import { Box, CircularProgress, Typography, Pagination } from '@mui/material';
-import ReviewCard from "./organisms/ReviewCard";
-
-interface ReviewPage {
-  content: Review[];
-  totalPages: number;
-  number: number;
-}
-interface Review {
-  id: number;
-  authorNickname: string;
-  category: string;
-  contentName: string;
-  text: string;
-  rating: number;
-}
+import ReviewCard from './organisms/ReviewCard';
+import { useMyReviews } from '../hooks/useMyReviews';
 
 function MyReviewsTab() {
-  const [reviewPage, setReviewPage] = useState<ReviewPage | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
-
-  useEffect(() => {
-    const fetchMyReviews = async () => {
-      setLoading(true);
-      try {
-        const response = await axiosInstance.get(`/api/me/reviews?page=${page}&size=5`);
-        setReviewPage(response.data);
-      } catch (error) {
-        console.error("내가 쓴 리뷰를 불러오는 데 실패했습니다.", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMyReviews();
-  }, [page]);
-
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value - 1);
-  };
+  const { reviewPage, loading, page, handlePageChange } = useMyReviews();
 
   if (loading) {
-    return <CircularProgress />;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (!reviewPage || reviewPage.content.length === 0) {
-    return <Typography>작성한 리뷰가 없습니다.</Typography>;
+    return <Typography sx={{ p: 4 }}>작성한 리뷰가 없습니다.</Typography>;
   }
 
   return (
@@ -62,7 +30,8 @@ function MyReviewsTab() {
           rating={review.rating}
         />
       ))}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+      {/* 페이지네이션 UI */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
         <Pagination
           count={reviewPage.totalPages}
           page={page + 1}
