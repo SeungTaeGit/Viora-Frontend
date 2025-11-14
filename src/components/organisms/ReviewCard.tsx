@@ -1,29 +1,38 @@
-// src/components/ReviewCard.tsx
-
-import { Card, CardActionArea, CardContent, Typography, Box } from "@mui/material";
-import { Link } from "react-router-dom"; // 1. Link import
+import { Card, CardActionArea, CardContent, Typography, Box, CardMedia } from "@mui/material";
+import { Link } from "react-router-dom";
 
 interface ReviewCardProps {
-  id: number; // 2. ❗️ id를 props로 받도록 추가
+  id: number;
   authorNickname: string;
   category: string;
   contentName: string;
   text: string;
   rating: number;
+  imageUrl: string | null; //
 }
 
-function ReviewCard({ id, authorNickname, category, contentName, text, rating }: ReviewCardProps) {
+function ReviewCard({ id, authorNickname, category, contentName, text, rating, imageUrl }: ReviewCardProps) {
+
+  const truncatedText = text.length > 100 ? text.substring(0, 100) + "..." : text;
+
   return (
-    // 3. ❗️ Card 전체를 Link로 감싸줍니다.
     <Card sx={{ mb: 2 }} component={Link} to={`/reviews/${id}`} style={{ textDecoration: 'none' }}>
       <CardActionArea>
+        {imageUrl && (
+          <CardMedia
+            component="img"
+            height="140"
+            image={imageUrl}
+            alt={contentName}
+            onError={(e: any) => e.target.style.display = 'none'}
+          />
+        )}
         <CardContent>
-          {/* ... (나머지 내용은 동일) ... */}
           <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
             {category} - {contentName}
           </Typography>
           <Typography variant="h5" component="div">
-            "{text}"
+            "{truncatedText}"
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1.5 }}>
             <Typography sx={{ mb: 1.5 }} color="text.secondary">
