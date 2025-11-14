@@ -2,6 +2,8 @@ import { Box, Button, TextField, Typography, Divider, Alert } from "@mui/materia
 import { useLogin } from "../hooks/useLogin";
 import GoogleIcon from '@mui/icons-material/Google';
 import ChatIcon from '@mui/icons-material/Chat';
+import { Link as RouterLink } from 'react-router-dom';
+import { Link } from '@mui/material';
 
 const BACKEND_URL = "http://localhost:8080";
 
@@ -92,6 +94,11 @@ function LoginPage() {
         >
           Kakao로 로그인
         </Button>
+      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+        <Link component={RouterLink} to="/find-account" variant="body2">
+          계정을 잊으셨나요?
+        </Link>
       </Box>
     </Box>
   );
