@@ -15,6 +15,7 @@ import SignupPage from "./pages/SignupPage";
 import AllReviewsPage from './pages/AllReviewsPage';
 import ReviewDetailPage from "./pages/ReviewDetailPage";
 import OAuthRedirectPage from './pages/OAuthRedirectPage';
+import FindAccountPage from "./pages/FindAccountPage";
 
 // Protected Pages (로그인 필수)
 import ReviewWritePage from './pages/ReviewWritePage';
@@ -66,6 +67,7 @@ function App() {
           <Route path="/reviews" element={<AllReviewsPage />} />
           <Route path="/reviews/:reviewId" element={<ReviewDetailPage />} />
           <Route path="/oauth-redirect" element={<OAuthRedirectPage />} />
+          <Route path="/find-account" element={<FindAccountPage />} />
 
           {/* --- 보호된 경로 (로그인 필수) --- */}
           <Route element={<ProtectedRoute />}>
