@@ -81,8 +81,9 @@ function AllReviewsPage() {
                 contentName={review.contentName}
                 text={review.text}
                 rating={review.rating}
-                isLiked={false} // 기본값
-                likeCount={0}   // 기본값
+                isLiked={false}
+                likeCount={0}
+                imageUrl={review.imageUrl}
               />
             ))}
           </Box>

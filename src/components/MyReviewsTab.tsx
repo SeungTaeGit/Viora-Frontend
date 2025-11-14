@@ -28,6 +28,7 @@ function MyReviewsTab() {
           contentName={review.contentName}
           text={review.text}
           rating={review.rating}
+          imageUrl={review.imageUrl}
         />
       ))}
       {/* 페이지네이션 UI */}

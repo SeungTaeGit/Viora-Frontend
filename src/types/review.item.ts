@@ -8,6 +8,8 @@ export type ReviewItem = {
   rating: number;
   likeCount: number;
   isLiked: boolean;
+  createdAt: string;
+  imageUrl: string | null;
 };
 
 export type ReviewPageItem = {
