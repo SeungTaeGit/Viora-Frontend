@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { useAuthStore } from "../stores/authStore";
-import { Box, ListItem, ListItemText, IconButton, TextField, Button } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import axiosInstance from "../api/axiosInstance";
 
 interface Comment {
@@ -22,64 +19,67 @@ function CommentItem({ comment, onCommentUpdated }: CommentItemProps) {
   const [editedText, setEditedText] = useState(comment.text);
 
   const handleDelete = async () => {
-    if (window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
+    if (window.confirm("삭제하시겠습니까?")) {
       try {
         await axiosInstance.delete(`/api/comments/${comment.id}`);
-        alert("댓글이 삭제되었습니다.");
         onCommentUpdated();
-      } catch (error) {
-        alert("댓글 삭제에 실패했습니다.");
-      }
+      } catch (error) { alert("삭제 실패"); }
     }
   };
 
   const handleUpdate = async () => {
     try {
         await axiosInstance.put(`/api/comments/${comment.id}`, { text: editedText });
-        alert("댓글이 수정되었습니다.");
         setIsEditing(false);
         onCommentUpdated();
-    } catch (error) {
-        alert("댓글 수정에 실패했습니다.");
-    }
+    } catch (error) { alert("수정 실패"); }
   };
 
+  const isMyComment = user?.nickname === comment.authorNickname;
+
+  const avatarInitial = comment.authorNickname ? comment.authorNickname.charAt(0) : '?';
+
   return (
-    <ListItem
-      alignItems="flex-start"
-      secondaryAction={
-        user?.nickname === comment.authorNickname ? (
-          <>
-            <IconButton edge="end" aria-label="edit" onClick={() => setIsEditing(true)}>
-              <EditIcon />
-            </IconButton>
-            <IconButton edge="end" aria-label="delete" onClick={handleDelete}>
-              <DeleteIcon />
-            </IconButton>
-          </>
-        ) : null
-      }
-    >
-      {isEditing ? (
-        <Box sx={{ width: '100%' }}>
-            <TextField
-                fullWidth
-                multiline
-                value={editedText}
-                onChange={(e) => setEditedText(e.target.value)}
-            />
-            <Box sx={{ mt: 1, textAlign: 'right' }}>
-                <Button onClick={() => setIsEditing(false)} sx={{ mr: 1 }}>취소</Button>
-                <Button onClick={handleUpdate} variant="contained">저장</Button>
-            </Box>
-        </Box>
-      ) : (
-        <ListItemText
-          primary={comment.authorNickname}
-          secondary={comment.text}
-        />
-      )}
-    </ListItem>
+    <div className="flex space-x-3 group mb-4">
+        <div className="flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-xs uppercase">
+                {avatarInitial}
+            </div>
+        </div>
+        <div className="flex-grow">
+            <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-gray-100 shadow-sm relative">
+                <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-bold text-gray-900">
+                        {comment.authorNickname || '알 수 없는 사용자'}
+                    </span>
+                    {/* 내 댓글일 때만 보이는 수정/삭제 버튼 */}
+                    {isMyComment && !isEditing && (
+                        <div className="flex space-x-2 text-xs text-gray-400">
+                            <button onClick={() => setIsEditing(true)} className="hover:text-indigo-600">수정</button>
+                            <button onClick={handleDelete} className="hover:text-red-600">삭제</button>
+                        </div>
+                    )}
+                </div>
+
+                {isEditing ? (
+                    <div className="mt-2">
+                        <textarea
+                            className="w-full p-2 text-sm border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none"
+                            value={editedText}
+                            onChange={(e) => setEditedText(e.target.value)}
+                            rows={2}
+                        />
+                        <div className="flex justify-end space-x-2 mt-2">
+                            <button onClick={() => setIsEditing(false)} className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1">취소</button>
+                            <button onClick={handleUpdate} className="text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700">저장</button>
+                        </div>
+                    </div>
+                ) : (
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{comment.text}</p>
+                )}
+            </div>
+        </div>
+    </div>
   );
 }
 

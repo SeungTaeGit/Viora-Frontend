@@ -1,277 +1,214 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import axiosInstance from "../api/axiosInstance";
-import {
-  Box,
-  Container,
-  Typography,
-  Divider,
-  List,
-  CircularProgress,
-  Button,
-  Modal,
-  ListItem,
-  ListItemText,
-  IconButton,
-} from "@mui/material";
-import { useAuthStore } from "../stores/authStore";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Map, MapMarker } from "react-kakao-maps-sdk";
 import CommentForm from "../components/CommentForm";
 import CommentItem from "../components/CommentItem";
-import { Map, MapMarker } from "react-kakao-maps-sdk";
 import LikeButton from "../components/LikeButton";
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { useReviewDetail } from "../hooks/useReviewDetail";
 
-interface Review {
-  authorNickname: string;
-  category: string;
-  contentName: string;
-  location: string;
-  text: string;
-  rating: number;
-  likeCount: number;
-  isLiked: boolean;
-  imageUrl: string | null;
-}
-
-interface Comment {
-  id: number;
-  authorNickname: string;
-  text: string;
-}
-
-interface Liker {
-  nickname: string;
-}
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center h-80">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+  </div>
+);
 
 function ReviewDetailPage() {
   const { reviewId } = useParams<{ reviewId: string }>();
   const navigate = useNavigate();
-  const { user, isLoading: isAuthLoading, isLoggedIn } = useAuthStore();
-  const [review, setReview] = useState<Review | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(null);
 
-  const [isLikersModalOpen, setIsLikersModalOpen] = useState(false);
-  const [likersList, setLikersList] = useState<Liker[]>([]);
-  const [isLoadingLikers, setIsLoadingLikers] = useState(false);
+  const {
+    review,
+    comments,
+    markerPosition,
+    isLikersModalOpen,
+    likersList,
+    isLoadingLikers,
+    loading,
+    isLoggedIn,
+    user,
+    fetchComments,
+    handleDeleteReview,
+    handleOpenLikersModal,
+    handleCloseLikersModal,
+  } = useReviewDetail(reviewId);
 
-  const fetchComments = async () => {
-    if (!reviewId) return;
-    try {
-      const response = await axiosInstance.get(
-        `/api/reviews/${reviewId}/comments`
-      );
-      setComments(response.data.content);
-    } catch (error) {
-      console.error("댓글을 불러오는 데 실패했습니다.", error);
-    }
+  if (loading) return <LoadingSpinner />;
+
+  if (!review) return <div className="text-center py-20 text-gray-500">해당 리뷰를 찾을 수 없습니다.</div>;
+
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <svg
+        key={i}
+        className={`w-4 h-4 ${i < rating ? "text-yellow-400" : "text-gray-300"}`}
+        fill="currentColor"
+        viewBox="0 0 20 20"
+      >
+        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+      </svg>
+    ));
   };
-
-  useEffect(() => {
-    const fetchReviewDetail = async () => {
-      if (!reviewId) return;
-      try {
-        const response = await axiosInstance.get(`/api/reviews/${reviewId}`);
-        setReview(response.data);
-
-        if (response.data.location && window.kakao && window.kakao.maps && window.kakao.maps.services) {
-          const geocoder = new window.kakao.maps.services.Geocoder();
-          geocoder.addressSearch(response.data.location, (result, status) => {
-            if (status === window.kakao.maps.services.Status.OK) {
-              setMarkerPosition({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
-            } else {
-              console.warn("주소를 좌표로 변환하는데 실패했습니다:", response.data.location);
-              setMarkerPosition(null);
-            }
-          });
-        } else {
-             setMarkerPosition(null);
-        }
-      } catch (error) {
-        console.error("리뷰 상세 정보를 불러오는 데 실패했습니다.", error);
-        setReview(null);
-      }
-    };
-
-    fetchReviewDetail();
-    fetchComments();
-  }, [reviewId]);
-
-  const handleDeleteReview = async () => {
-    if (window.confirm("정말로 이 리뷰를 삭제하시겠습니까?")) {
-      try {
-        await axiosInstance.delete(`/api/reviews/${reviewId}`);
-        alert("리뷰가 삭제되었습니다.");
-        navigate("/");
-      } catch (error) {
-        alert("리뷰 삭제에 실패했습니다.");
-        console.error("리뷰 삭제 오류:", error);
-      }
-    }
-  };
-
-  const handleOpenLikersModal = async () => {
-    if (!reviewId || isLoadingLikers) return;
-    setIsLoadingLikers(true);
-    try {
-      const response = await axiosInstance.get(`/api/reviews/${reviewId}/likers`);
-      setLikersList(response.data);
-      setIsLikersModalOpen(true);
-    } catch (error) {
-      console.error("좋아요 목록을 불러오는 데 실패했습니다.", error);
-      alert("좋아요 목록을 불러올 수 없습니다.");
-    } finally {
-      setIsLoadingLikers(false);
-    }
-  };
-
-  if (isAuthLoading || !review) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
-    <Container component="main" maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      {/* 리뷰 내용 */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h4" gutterBottom>
-          {review.contentName}
-        </Typography>
-        {user?.nickname === review.authorNickname && (
-          <Box>
-            <Button size="small" sx={{ mr: 1 }} component={Link} to={`/reviews/${reviewId}/edit`}>
-              수정
-            </Button>
-            <Button size="small" color="error" onClick={handleDeleteReview}>
-              삭제
-            </Button>
-          </Box>
+    <div className="bg-gray-50 min-h-screen py-10 font-sans">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* --- 1. 리뷰 헤더 --- */}
+        <div className="mb-6">
+          <div className="flex items-center space-x-2 text-sm text-indigo-600 font-semibold mb-2">
+            <span className="bg-indigo-50 px-2 py-1 rounded">{review.category}</span>
+          </div>
+
+          <div className="flex justify-between items-start">
+             <h1 className="text-3xl font-bold text-gray-900 mb-4 leading-tight">{review.contentName}</h1>
+
+             {/* 수정/삭제 버튼 (작성자 본인일 때만) */}
+             {user?.nickname === review.authorNickname && (
+                <div className="flex space-x-2 flex-shrink-0 ml-4">
+                  <Link to={`/reviews/${reviewId}/edit`} className="text-gray-400 hover:text-indigo-600 text-sm font-medium transition-colors">수정</Link>
+                  <button onClick={handleDeleteReview} className="text-gray-400 hover:text-red-600 text-sm font-medium transition-colors">삭제</button>
+                </div>
+             )}
+          </div>
+
+          <div className="flex items-center">
+            {/* 프로필 이미지 (이니셜) */}
+            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold mr-3">
+              {review.authorNickname.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">{review.authorNickname}</p>
+              <div className="flex items-center mt-0.5">
+                 <div className="flex mr-1">{renderStars(review.rating)}</div>
+                 <span className="text-xs text-gray-500 font-medium">({review.rating}.0)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* --- 2. 메인 이미지 --- */}
+        {review.imageUrl && (
+          <div className="rounded-xl overflow-hidden shadow-md mb-8 bg-white">
+            <img
+              src={review.imageUrl}
+              alt={review.contentName}
+              className="w-full h-auto object-cover max-h-[500px]"
+              onError={(e: any) => e.target.style.display = 'none'}
+            />
+          </div>
         )}
-      </Box>
-      <Typography variant="subtitle1" color="text.secondary">
-        {review.category}
-      </Typography>
 
-      {/* 리뷰 메인 이미지 (있을 경우) */}
-      {review.imageUrl && (
-        <Box sx={{ width: '100%', maxHeight: '500px', overflow: 'hidden', mt: 2, mb: 2, borderRadius: 2 }}>
-          <img
-            src={review.imageUrl}
-            alt={review.contentName}
-            style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
-            onError={(e: any) => e.target.style.display = 'none'}
-            referrerPolicy="no-referrer"
-          />
-        </Box>
-      )}
+        {/* --- 3. 리뷰 본문 --- */}
+        <div className="prose prose-lg text-gray-700 mb-10 leading-relaxed whitespace-pre-wrap">
+          {review.text}
+        </div>
 
-      {/* 위치 정보 및 지도 */}
-      {markerPosition && (
-         <Box sx={{ width: '100%', height: '300px', mt: 2, mb: 2 }}>
-           <Map center={markerPosition} style={{ width: "100%", height: "100%" }} level={3}>
-             <MapMarker position={markerPosition} />
-           </Map>
-         </Box>
-      )}
-      <Typography variant="body2" color="text.secondary" gutterBottom>
-        위치: {review.location || '정보 없음'}
-      </Typography>
+        {/* --- 4. 위치 정보 (지도) --- */}
+        {/* markerPosition이 있으면 지도 표시, 없으면 텍스트만 표시 */}
+        {markerPosition ? (
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 mb-8">
+            <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center">
+              📍 위치 정보
+            </h3>
+            <div className="w-full h-48 rounded-lg overflow-hidden mb-3 border border-gray-200">
+              <Map center={markerPosition} style={{ width: "100%", height: "100%" }} level={3}>
+                <MapMarker position={markerPosition} />
+              </Map>
+            </div>
+            <p className="text-sm text-gray-600 flex items-center">
+              <span className="mr-1">🏠</span> {review.location}
+            </p>
+          </div>
+        ) : review.location && (
+            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 mb-8">
+                <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center">
+                📍 위치 정보
+                </h3>
+                <p className="text-sm text-gray-600 flex items-center">
+                <span className="mr-1">🏠</span> {review.location}
+                </p>
+            </div>
+        )}
 
-      <Typography variant="h5" sx={{ mt: 2 }}>
-        "{review.text}"
-      </Typography>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2, mb: 2 }}>
-        <Typography color="text.secondary">by {review.authorNickname}</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant="h6" sx={{ mr: 1 }}>⭐ {review.rating} / 5</Typography>
-          <LikeButton
-            reviewId={reviewId!}
-            initialLikeCount={review.likeCount}
-            initialIsLiked={review.isLiked}
-          />
-          <IconButton
-            aria-label="view likers"
-            onClick={handleOpenLikersModal}
-            size="small"
-            sx={{ ml: 0.5 }}
-            disabled={isLoadingLikers}
-          >
-            <AccountCircleIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      </Box>
+        {/* --- 5. 좋아요 버튼 영역 --- */}
+        <div className="flex items-center justify-between border-t border-b border-gray-200 py-4 mb-10">
+            <div className="flex items-center space-x-6">
+                {/* 좋아요 버튼 컴포넌트 */}
+                <LikeButton
+                    reviewId={reviewId!}
+                    initialLikeCount={review.likeCount}
+                    initialIsLiked={review.isLiked}
+                />
 
-      <Divider sx={{ my: 4 }} />
+                {/* 좋아요 목록 보기 버튼 */}
+                <button
+                    onClick={handleOpenLikersModal}
+                    disabled={isLoadingLikers}
+                    className="flex items-center space-x-1 text-gray-500 hover:text-gray-900 transition-colors text-sm font-medium"
+                >
+                    <span>👥 좋아요 {review.likeCount}개</span>
+                </button>
+            </div>
 
-      {/* 댓글 목록 */}
-      <Typography variant="h5" gutterBottom>
-        댓글 ({comments.length}개)
-      </Typography>
-      <List>
-        {comments.map((comment) => (
-          <CommentItem
-            key={comment.id}
-            comment={comment}
-            onCommentUpdated={fetchComments}
-          />
-        ))}
-      </List>
+            {/* 공유 버튼 (아이콘만 구현) */}
+            <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+            </button>
+        </div>
 
-      {/* 댓글 작성 폼 */}
-      {isLoggedIn && reviewId && (
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            댓글 작성하기
-          </Typography>
-          <CommentForm reviewId={reviewId} onCommentAdded={fetchComments} />
-        </Box>
-      )}
+        {/* --- 6. 댓글 섹션 --- */}
+        <div>
+          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+            댓글 <span className="ml-2 text-indigo-600 text-lg">{comments.length}</span>
+          </h3>
 
-      {/* '좋아요' 목록 모달 창 */}
-      <Modal
-        open={isLikersModalOpen}
-        onClose={() => setIsLikersModalOpen(false)}
-        aria-labelledby="likers-modal-title"
-      >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 400,
-          bgcolor: 'background.paper',
-          border: '2px solid #000',
-          boxShadow: 24,
-          p: 4,
-        }}>
-          <Typography id="likers-modal-title" variant="h6" component="h2">
-            좋아요 누른 사람
-          </Typography>
-          {isLoadingLikers ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <List sx={{ mt: 2, maxHeight: 300, overflow: 'auto' }}>
-              {likersList.length > 0 ? (
-                 likersList.map((liker, index) => (
-                  <ListItem key={index}>
-                    <ListItemText primary={liker.nickname} />
-                  </ListItem>
-                 ))
-              ) : (
-                <Typography sx={{ mt: 2 }}>좋아요를 누른 사람이 없습니다.</Typography>
-              )}
-            </List>
+          {/* 댓글 목록 */}
+          <div className="space-y-4 mb-8">
+            {comments.map((comment) => (
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                onCommentUpdated={fetchComments}
+              />
+            ))}
+            {comments.length === 0 && <p className="text-gray-500 text-sm py-4">아직 작성된 댓글이 없습니다.</p>}
+          </div>
+
+          {/* 댓글 작성 폼 */}
+          {isLoggedIn && reviewId && (
+            <CommentForm reviewId={reviewId} onCommentAdded={fetchComments} />
           )}
-          <Button onClick={() => setIsLikersModalOpen(false)} sx={{ mt: 2 }}>닫기</Button>
-        </Box>
-      </Modal>
+        </div>
+      </div>
 
-    </Container>
+      {/* 좋아요 누른 사람 모달 */}
+      {isLikersModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50" onClick={handleCloseLikersModal}>
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden" onClick={e => e.stopPropagation()}>
+                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                    <h3 className="font-bold text-gray-900">좋아요 누른 사람</h3>
+                    <button onClick={handleCloseLikersModal} className="text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+                <div className="p-0 max-h-80 overflow-y-auto">
+                    {likersList.length > 0 ? (
+                        <ul className="divide-y divide-gray-100">
+                            {likersList.map((liker, index) => (
+                                <li key={index} className="px-6 py-3 text-sm text-gray-700 flex items-center">
+                                     <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-xs mr-3 font-bold">
+                                        {liker.nickname.charAt(0)}
+                                     </div>
+                                    {liker.nickname}
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="px-6 py-8 text-center text-sm text-gray-500">아직 좋아요가 없습니다.</p>
+                    )}
+                </div>
+            </div>
+        </div>
+      )}
+
+    </div>
   );
 }
 
