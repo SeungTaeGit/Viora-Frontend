@@ -119,7 +119,12 @@ function ReviewWritePage() {
           {/* 이미지 미리보기 */}
           {imagePreview && (
             <Box sx={{ mt: 2 }}>
-              <img src={imagePreview} alt="미리보기" style={{ width: '100%', maxHeight: '300px', objectFit: 'cover' }} />
+              <img
+                src={imagePreview}
+                alt="미리보기"
+                style={{ width: '100%', maxHeight: '300px', objectFit: 'cover' }}
+                referrerPolicy="no-referrer"
+              />
             </Box>
           )}
         </Box>

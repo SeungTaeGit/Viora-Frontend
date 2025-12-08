@@ -163,6 +163,7 @@ function ReviewDetailPage() {
             alt={review.contentName}
             style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
             onError={(e: any) => e.target.style.display = 'none'}
+            referrerPolicy="no-referrer"
           />
         </Box>
       )}

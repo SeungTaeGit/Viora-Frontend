@@ -131,6 +131,7 @@ function ReviewEditPage() {
                 src={imagePreview || existingImageUrl || ''}
                 alt="미리보기"
                 style={{ width: '100%', maxHeight: '300px', objectFit: 'cover' }}
+                referrerPolicy="no-referrer"
               />
             </Box>
           )}
