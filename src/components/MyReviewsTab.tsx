@@ -1,46 +1,65 @@
-import { Box, CircularProgress, Typography, Pagination } from '@mui/material';
-import ReviewCard from './organisms/ReviewCard';
-import { useMyReviews } from '../hooks/useMyReviews';
+import { useMyReviews } from "../hooks/useMyReviews";
+import ReviewCard from "../components/organisms/ReviewCard";
 
 function MyReviewsTab() {
   const { reviewPage, loading, page, handlePageChange } = useMyReviews();
 
+  // MUI Pagination의 onChange 호환을 위한 래퍼 함수
+  const onPageBtnClick = (newPage: number) => {
+    handlePageChange(null as any, newPage);
+  };
+
   if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <div className="text-center py-10 text-gray-500">로딩 중...</div>;
   }
 
   if (!reviewPage || reviewPage.content.length === 0) {
-    return <Typography sx={{ p: 4 }}>작성한 리뷰가 없습니다.</Typography>;
+    return (
+      <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200 border-dashed">
+        <p className="text-gray-500">아직 작성한 리뷰가 없습니다.</p>
+        <p className="text-sm text-gray-400 mt-1">첫 번째 리뷰를 작성해보세요!</p>
+      </div>
+    );
   }
 
   return (
-    <Box>
-      {reviewPage.content.map((review) => (
-        <ReviewCard
-          key={review.id}
-          id={review.id}
-          authorNickname={review.authorNickname}
-          category={review.category}
-          contentName={review.contentName}
-          text={review.text}
-          rating={review.rating}
-          imageUrl={review.imageUrl}
-        />
-      ))}
-      {/* 페이지네이션 UI */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <Pagination
-          count={reviewPage.totalPages}
-          page={page + 1}
-          onChange={handlePageChange}
-          color="primary"
-        />
-      </Box>
-    </Box>
+    <div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {reviewPage.content.map((review) => (
+          <ReviewCard
+            key={review.id}
+            id={review.id}
+            authorNickname={review.authorNickname}
+            category={review.category}
+            contentName={review.contentName}
+            text={review.text}
+            rating={review.rating}
+            imageUrl={review.imageUrl}
+          />
+        ))}
+      </div>
+
+      {/* Tailwind 페이지네이션 */}
+      <div className="flex justify-center items-center space-x-2">
+        <button
+          onClick={() => onPageBtnClick(page - 1)}
+          disabled={page === 1} // API page는 0부터지만 UI page는 1부터라고 가정 (Hook 로직 확인 필요)
+          className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          이전
+        </button>
+        <span className="text-sm text-gray-600 font-medium">
+            Page {page + 1} of {reviewPage.totalPages}
+        </span>
+        <button
+          onClick={() => onPageBtnClick(page + 1)}
+          disabled={page + 1 === reviewPage.totalPages} // page는 0부터 시작하므로 +1 비교 확인 필요 (API 로직에 따름)
+          className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          다음
+        </button>
+      </div>
+    </div>
   );
 }
 
