@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 import CommentForm from "../components/CommentForm";
 import CommentItem from "../components/CommentItem";
@@ -13,7 +13,6 @@ const LoadingSpinner = () => (
 
 function ReviewDetailPage() {
   const { reviewId } = useParams<{ reviewId: string }>();
-  const navigate = useNavigate();
 
   const {
     review,

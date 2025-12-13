@@ -16,6 +16,7 @@ class ReviewService {
       rating: model.rating,
       likeCount: model.likeCount,
       isLiked: model.isLiked,
+      createdAt: model.createdAt,
       imageUrl: model.imageUrl,
     };
   }

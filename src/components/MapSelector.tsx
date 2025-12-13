@@ -1,6 +1,6 @@
 // src/components/MapSelector.tsx
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Map, MapMarker } from 'react-kakao-maps-sdk';
 import { Box, TextField, Button } from '@mui/material'; // MUI 컴포넌트 추가
 

@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 import { Rating } from '@mui/material';
 import MapSelector from '../components/MapSelector';
-import PhotoCamera from '@mui/icons-material/PhotoCamera';
 
 const REVIEW_CATEGORIES = [
   '맛집', '카페', '숙소', '여행지', '영화', '도서', '기타',
@@ -208,7 +207,7 @@ function ReviewEditPage() {
                         <Rating
                             name="rating"
                             value={rating}
-                            onChange={(event, newValue) => { setRating(newValue); }}
+                            onChange={(_, newValue) => { setRating(newValue); }}
                             size="large"
                             sx={{ fontSize: '2.5rem' }}
                         />

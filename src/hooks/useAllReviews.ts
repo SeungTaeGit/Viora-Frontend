@@ -42,7 +42,7 @@ export function useAllReviews() {
   }, [fetchData]);
 
   // 페이지 변경 핸들러
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
     setPage(value - 1); // MUI Pagination은 1부터 시작하므로 -1
   };
 

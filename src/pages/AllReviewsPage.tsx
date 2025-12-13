@@ -1,5 +1,3 @@
-import axiosInstance from '../api/axiosInstance';
-import { useState, useEffect } from 'react';
 import ReviewCard from "../components/organisms/ReviewCard";
 import { useAllReviews } from "../hooks/useAllReviews";
 

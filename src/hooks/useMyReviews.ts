@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axiosInstance from '../api/axiosInstance';
-import type { ReviewItem, ReviewPageItem } from '../types/review.item';
+import type { ReviewPageItem } from '../types/review.item';
 
 export function useMyReviews() {
   const [reviewPage, setReviewPage] = useState<ReviewPageItem | null>(null);
@@ -30,7 +30,7 @@ export function useMyReviews() {
     fetchMyReviews();
   }, [page]);
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
     setPage(value - 1);
   };
 

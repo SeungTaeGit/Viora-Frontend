@@ -30,7 +30,7 @@ export function useMyComments() {
     fetchMyComments();
   }, [page]);
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
     setPage(value - 1);
   };
 

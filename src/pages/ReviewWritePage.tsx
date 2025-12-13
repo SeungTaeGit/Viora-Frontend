@@ -173,7 +173,7 @@ function ReviewWritePage() {
                         <Rating
                             name="rating"
                             value={rating}
-                            onChange={(event, newValue) => { setRating(newValue); }}
+                            onChange={(_, newValue) => { setRating(newValue); }}
                             size="large"
                             sx={{ fontSize: '2.5rem' }}
                         />

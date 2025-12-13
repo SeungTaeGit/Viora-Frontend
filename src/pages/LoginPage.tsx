@@ -4,8 +4,7 @@ import axiosInstance from "../api/axiosInstance";
 import { useAuthStore } from "../stores/authStore";
 import { Link } from "react-router-dom";
 
-// 백엔드 서버 주소 (소셜 로그인용)
-const BACKEND_URL = "http://localhost:8080";
+const BACKEND_URL = "http://43.201.180.190:8080";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -83,7 +82,7 @@ function LoginPage() {
 
           <div>
             <div className="flex items-center justify-between">
-              <label htmlFor="password" class="block text-sm font-medium leading-6 text-gray-900">
+              <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
                 비밀번호
               </label>
               <div className="text-sm">

@@ -1,12 +1,10 @@
-// src/hooks/useHomePage.ts
 import { useState, useEffect } from 'react';
-import { reviewService } from '../services/ReviewService';
 import { useAuthStore } from '../stores/authStore';
 
 export function useHomePage() {
-  const [latestReviews, setLatestReviews] = useState([]);
-  const [popularReviews, setPopularReviews] = useState([]);
-  const [recommendedReviews, setRecommendedReviews] = useState([]);
+  const [latestReviews] = useState([]);
+  const [popularReviews] = useState([]);
+  const [recommendedReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const { isLoggedIn } = useAuthStore(); // 로그인 상태 확인
