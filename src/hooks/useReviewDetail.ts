@@ -79,20 +79,21 @@ export function useReviewDetail(reviewId?: string): UseReviewDetailReturn {
         setReview(reviewData);
 
         if (reviewData.location) {
+          const geocodeAddress = () => {
             if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
-                const geocoder = new window.kakao.maps.services.Geocoder();
-                geocoder.addressSearch(reviewData.location, (result, status) => {
-                    if (status === window.kakao.maps.services.Status.OK) {
-                        setMarkerPosition({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
-                    } else {
-                        setMarkerPosition(null);
-                    }
-                });
+              const geocoder = new window.kakao.maps.services.Geocoder();
+              geocoder.addressSearch(reviewData.location, (result, status) => {
+                if (status === window.kakao.maps.services.Status.OK) {
+                  setMarkerPosition({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
+                }
+              });
             } else {
-                setMarkerPosition(null);
+              setTimeout(geocodeAddress, 500);
             }
+          };
+          geocodeAddress();
         } else {
-            setMarkerPosition(null);
+          setMarkerPosition(null);
         }
 
       } catch (error) {
