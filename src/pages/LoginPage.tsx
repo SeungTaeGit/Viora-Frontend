@@ -4,7 +4,7 @@ import axiosInstance from "../api/axiosInstance";
 import { useAuthStore } from "../stores/authStore";
 import { Link } from "react-router-dom";
 
-const BACKEND_URL = "http://43.201.180.190:8080";
+const BACKEND_URL = "https://api.viora-app.click";
 
 function LoginPage() {
   const [email, setEmail] = useState("");

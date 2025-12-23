@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://43.201.180.190:8080',
+  baseURL: 'https://api.viora-app.click',
 });
 
 axiosInstance.interceptors.request.use(
